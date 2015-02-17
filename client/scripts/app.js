@@ -1,3 +1,15 @@
+var app = {};
+
+app.init = function(){
+  return true;
+};
+
+var lastCheckTime;
+var friends = {};
+var firstRun = true;
+var rooms = {};
+var room;
+
 var entityMap = {
     "&": "&amp;",
     "<": "&lt;",
@@ -11,17 +23,18 @@ function escapeHtml(string) {
     return entityMap[s];
   });
 }
-var lastCheckTime;
 
 $(document).ready(function(){
  getMessage();
 
- setInterval(updateRoom, 2000);
+ setInterval(updateRoom, 1000);
+ setInterval(updateFriends, 1000);
+
  $("#sendMessage").submit(function(event){
   event.preventDefault();
-  var text = $("input[name=message]").val();
+  var text = $("textarea[name=message]").val();
   sendMessage(text);
-  $("input[name=message]").val('');
+  $("textarea[name=message]").val('');
  })
 
  $("#allrooms").on("click", function(){
@@ -34,20 +47,35 @@ $(document).ready(function(){
     room = roomname;
     changeRoom(room);
  });
- $(".user").on("click", function(){
-  if (friends.hasOwnProperty($(this).attr("data-user"))){
-    delete friends($(this).attr("data-user"));
+
+  $("#rooms").on("click", "a", function(){
+    room = $(this).attr("data-id");
+    changeRoom(room);
+  });
+
+ $("#chat").on("click", ".user", function(){
+  var friend = $(this).attr("data-user");
+  if (friends.hasOwnProperty(friend)){
+    $(this).removeClass("friended");
+    delete friends[friend];
   }
- })
+  else {
+    friends[friend] = '';
+  }
+ });
 });
 
-var friends = {};
-var firstRun = true;
-var rooms = {};
+var updateFriends = function(){
+  $("#friends span").empty();
+  $("span[data-user]").parent().removeClass("friended");
+  for (var key in friends){
+      $("#friends span").append("<a data-id=" + key + ">" + key + "</a>");
+      $("span[data-user='" + key + "']").parent().addClass("friended");
+    }
+}
 
 var getMessage = function(){
   var getURL = "https://api.parse.com/1/classes/chatterbox";
-
   var addMethod = firstRun ? "append" : "prepend";
 
   if (!firstRun){
@@ -66,11 +94,9 @@ var getMessage = function(){
       lastCheckTime = msg.results[0].createdAt;
     }
     $.each(msg.results, function(index, object){
-
       if (object.roomname) {
         rooms[object.roomname] = '';
       }
-
       if(!firstRun){
         lastCheckTime = object.createdAt;
       }
@@ -80,17 +106,13 @@ var getMessage = function(){
         }
       }
     });
-
     firstRun = false;
     setTimeout(getMessage, 5000);
-
   })
   .fail(function() {
     alert("Something's wrong. Panic. Refresh.");
   });
 };
-
-
 
 var sendMessage = function(text){
   var username = location.search.split('username=')[1];
@@ -111,18 +133,11 @@ var sendMessage = function(text){
   });
 };
 
-var room;
-
 var updateRoom = function(){
   $("#rooms div").empty();
   for (var key in rooms){
     $("#rooms div").append("<a data-id=" + key + ">" + key + "</a>");
   }
-  $("#rooms a").on("click", function(){
-    room = $(this).attr("data-id");
-    changeRoom(room);
-  });
-
 };
 
 function changeRoom(newRoomName){

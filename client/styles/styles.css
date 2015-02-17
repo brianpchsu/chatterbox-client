@@ -95,3 +95,6 @@ form input[type=text] {
 .selected {
     font-weight: bold;
 }
+.friended {
+    font-weight: bold;
+}
