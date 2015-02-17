@@ -17,11 +17,21 @@
       <h1>chatterbox</h1>
       <!-- Your HTML goes here! -->
 
-      <input id="inputMessage">
-      <input type="submit" id="inputSubmit">
+      <form id="sendMessage">
+        <input name="message">
+        <input type="submit">
+      </form>
 
       <div id="chat">
       </div>
+    </div>
+    <div id = "rooms">
+    <p>Rooms available</p>
+
+    <span id="createroom">Create Room</span>
+    <span style="display:none;" id="allrooms">All Room</span>
+    <div>Loading rooms...</div>
+
     </div>
   </body>
 </html>

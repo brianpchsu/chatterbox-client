@@ -15,13 +15,35 @@ var lastCheckTime;
 
 $(document).ready(function(){
  getMessage();
-  $("#inputSubmit").on("click", function(){
-    var text = $("#inputMessage").val();
-    sendMessage(text);
+
+ setInterval(updateRoom, 2000);
+ $("#sendMessage").submit(function(event){
+  event.preventDefault();
+  var text = $("input[name=message]").val();
+  sendMessage(text);
+  $("input[name=message]").val('');
+ })
+
+ $("#allrooms").on("click", function(){
+    room = undefined;
+    changeRoom();
+    $(this).hide();
   });
+ $("#createroom").on("click", function(){
+    var roomname = prompt("Enter your desire room name");
+    room = roomname;
+    changeRoom(room);
+ });
+ $(".user").on("click", function(){
+  if (friends.hasOwnProperty($(this).attr("data-user"))){
+    delete friends($(this).attr("data-user"));
+  }
+ })
 });
 
+var friends = {};
 var firstRun = true;
+var rooms = {};
 
 var getMessage = function(){
   var getURL = "https://api.parse.com/1/classes/chatterbox";
@@ -39,15 +61,23 @@ var getMessage = function(){
     url: getURL
   })
   .done(function( msg ) {
+    someGlobal = msg;
     if(firstRun){
       lastCheckTime = msg.results[0].createdAt;
     }
     $.each(msg.results, function(index, object){
+
+      if (object.roomname) {
+        rooms[object.roomname] = '';
+      }
+
       if(!firstRun){
         lastCheckTime = object.createdAt;
       }
-      if (object.text && object.username){
-        $("#chat")[addMethod]("<p>" + '<em>' + object.createdAt + '</em>' + escapeHtml(object.username) + ": " + escapeHtml(object.text) + "</p>");
+      if(!room || room === object.roomname){
+        if (object.text && object.username){
+          $("#chat")[addMethod]("<p>" + '<span class="user" data-user="' + escapeHtml(object.username) + '"' + ">"+escapeHtml(object.username)+"</span>: " + escapeHtml(object.text) + object.roomname + "</p>");
+        }
       }
     });
 
@@ -61,10 +91,11 @@ var getMessage = function(){
 };
 
 
+
 var sendMessage = function(text){
   var username = location.search.split('username=')[1];
   var sendURL = 'https://api.parse.com/1/classes/chatterbox';
-  var message = {username: username, text: text, roomname: 'hr25'}
+  var message = {username: username, text: text, roomname: room};
 
   $.ajax({
     url: sendURL,
@@ -79,5 +110,31 @@ var sendMessage = function(text){
     }
   });
 };
+
+var room;
+
+var updateRoom = function(){
+  $("#rooms div").empty();
+  for (var key in rooms){
+    $("#rooms div").append("<a data-id=" + key + ">" + key + "</a>");
+  }
+  $("#rooms a").on("click", function(){
+    room = $(this).attr("data-id");
+    changeRoom(room);
+  });
+
+};
+
+function changeRoom(newRoomName){
+  $("h1 small").remove();
+  $("#chat").empty();
+
+  if (newRoomName){
+    $("h1").append("<small> - " + room + "</small>");
+  }
+  $("#allrooms").show();
+}
+
+
 
 
