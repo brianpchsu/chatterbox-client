@@ -88,6 +88,7 @@ form input[type=text] {
 #rooms {
     float:right;
     width: 25%;
+    border: 5px solid navy;
 }
 #rooms a, #rooms span{
     display:block;
@@ -97,4 +98,9 @@ form input[type=text] {
 }
 .friended {
     font-weight: bold;
+}
+#friends{
+    width: 25%;
+    float:right;
+    border: 5px solid green;
 }

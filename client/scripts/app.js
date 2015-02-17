@@ -1,4 +1,4 @@
-var app = {};
+ var app = {};
 
 app.init = function(){
   return true;
@@ -10,24 +10,29 @@ var firstRun = true;
 var rooms = {};
 var room;
 
-var entityMap = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': '&quot;',
-    "'": '&#39;',
-    "/": '&#x2F;'
-  };
-function escapeHtml(string) {
-  return String(string).replace(/[&<>"'\/]/g, function (s) {
-    return entityMap[s];
-  });
+// var entityMap = {
+//     "&": "&amp;",
+//     "<": "&lt;",
+//     ">": "&gt;",
+//     '"': '&quot;',
+//     "'": '&#39;',
+//     "/": '&#x2F;'
+//   };
+// function escapeHtml(string) {
+//   return String(string).replace(/[&<>"'\/]/g, function (s) {
+//     return entityMap[s];
+//   });
+// }
+function jQueryEscape(string){
+  $temp = $("<div></div>");
+  $temp.text(string);
+  return $temp.html()
 }
 
 $(document).ready(function(){
  getMessage();
 
- setInterval(updateRoom, 1000);
+ setInterval(updateRoom, 5000);
  setInterval(updateFriends, 1000);
 
  $("#sendMessage").submit(function(event){
@@ -53,7 +58,8 @@ $(document).ready(function(){
     changeRoom(room);
   });
 
- $("#chat").on("click", ".user", function(){
+ $("#chat").on("click", "p", function(){
+  /*
   var friend = $(this).attr("data-user");
   if (friends.hasOwnProperty(friend)){
     $(this).removeClass("friended");
@@ -61,17 +67,23 @@ $(document).ready(function(){
   }
   else {
     friends[friend] = '';
-  }
+  }*/
+console.log("!", $(this).find(".message").text())
+
  });
+
 });
 
 var updateFriends = function(){
   $("#friends span").empty();
-  $("span[data-user]").parent().removeClass("friended");
+  $("span[data-friend-user]").parent().removeClass("friended");
+
   for (var key in friends){
-      $("#friends span").append("<a data-id=" + key + ">" + key + "</a>");
+      $("#friends span").append("<a data-friend-id='" + jQueryEscape(key) + "'>" + jQueryEscape(key) + "</a>");
       $("span[data-user='" + key + "']").parent().addClass("friended");
-    }
+  }
+
+
 }
 
 var getMessage = function(){
@@ -94,7 +106,7 @@ var getMessage = function(){
       lastCheckTime = msg.results[0].createdAt;
     }
     $.each(msg.results, function(index, object){
-      if (object.roomname) {
+      if (object.roomname && object.roomname != "") {
         rooms[object.roomname] = '';
       }
       if(!firstRun){
@@ -102,7 +114,15 @@ var getMessage = function(){
       }
       if(!room || room === object.roomname){
         if (object.text && object.username){
-          $("#chat")[addMethod]("<p>" + '<span class="user" data-user="' + escapeHtml(object.username) + '"' + ">"+escapeHtml(object.username)+"</span>: " + escapeHtml(object.text) + object.roomname + "</p>");
+          if (!object.room){ object.room = ""; }
+          $("#chat")[addMethod]('<p><span class="user" data-user="'+jQueryEscape(object.username)+'">'+jQueryEscape(object.username)+"</span>: <span class='message'>"+jQueryEscape(object.text)+'</span> '+jQueryEscape(object.room));
+
+        //     if (!firstRun){
+
+        //   if (object.username.indexOf("Echo") === -1){
+        //     sendMessage(jQueryEscape(object.text).split('').reverse().join(''), jQueryEscape(object.username) + ' Echo');
+        //   }
+        // }
         }
       }
     });
@@ -114,10 +134,15 @@ var getMessage = function(){
   });
 };
 
-var sendMessage = function(text){
-  var username = location.search.split('username=')[1];
+var sendMessage = function(text, username){
+
+  if (!username){
+    var username = location.search.split('username=')[1];
+  }
+
   var sendURL = 'https://api.parse.com/1/classes/chatterbox';
   var message = {username: username, text: text, roomname: room};
+
 
   $.ajax({
     url: sendURL,
@@ -136,7 +161,7 @@ var sendMessage = function(text){
 var updateRoom = function(){
   $("#rooms div").empty();
   for (var key in rooms){
-    $("#rooms div").append("<a data-id=" + key + ">" + key + "</a>");
+    $("#rooms div").append("<a data-room-id=" + jQueryEscape(key) + ">" + jQueryEscape(key) + "</a>");
   }
 };
 
