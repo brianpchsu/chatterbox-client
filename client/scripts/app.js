@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-//Backbone based code
 var Message = Backbone.Model.extend({
   url: 'https://api.parse.com/1/classes/chatterbox/',
   defaults: {
@@ -96,9 +94,6 @@ var app = {
 
   
 };
-||||||| merged common ancestors
-var app = {};
->>>>>>> f6913a48c3ebbced4cb2b76c751408b4cbfd6674
 
 app.init = function(){
   return true;
@@ -110,7 +105,6 @@ var firstRun = true;
 var rooms = {};
 var room;
 
-<<<<<<< HEAD
 var entityMap = {
     "&": "&amp;",
     "<": "&lt;",
@@ -130,7 +124,6 @@ function jQueryEscape(string){
   $temp.text(string);
   return $temp.html()
 }
->>>>>>> f6913a48c3ebbced4cb2b76c751408b4cbfd6674
 
 $(document).ready(function(){
  getMessage();
